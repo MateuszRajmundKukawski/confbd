@@ -3,7 +3,7 @@ from Tkinter import *
 import tkMessageBox
 from tkFileDialog import askopenfilename
 import threading
-import time
+
  
 
 import os
@@ -37,27 +37,30 @@ class MyApp(Frame):
 
         self.initMenu()
         ########################
-        self.file_name = StringVar()
-        self.file_name.set('?')
+        
         self.get_file_Button = Button(self, text="Select base", command=self.get_file, width=self.buttonWidth)
         self.get_file_Button.grid(row=0, column=0, sticky=W, padx=self.pad_x,pady = self.pad_y)
 
+        self.file_name = StringVar()
+        self.file_name.set('?')
         self.file_name_Label = Label(self, textvariable=self.file_name)
         self.file_name_Label.grid(row=0, column=1)
         ########################
-        self.pesel_name = StringVar()
-        self.pesel_name.set('?')
+        
         self.pesel_name_Button = Button(self, text="PeselFile", command=self.get_pesel_file, width=self.buttonWidth)
         self.pesel_name_Button.grid(row=1, column=0, sticky=W, padx=self.pad_x,pady = self.pad_y)
         
+        self.pesel_name = StringVar()
+        self.pesel_name.set('?')
         self.pesel_name_Label = Label(self, textvariable=self.pesel_name)
         self.pesel_name_Label.grid(row=1, column=1)
         ########################
         self.runApp_Button = Button(self, text="runAPP", command=self.runApp, width=self.buttonWidth)
         self.runApp_Button.grid(row=2, column=0, sticky=W, padx=self.pad_x,pady = self.pad_y)
-        #########################
+        
         self.runApp_Label = Label(self, textvariable=self.runApp_text)
         self.runApp_Label.grid(row=2, column=1, sticky=W, padx=self.pad_x,pady = self.pad_y)
+        #########################
 
 
     def initMenu(self):
@@ -82,6 +85,7 @@ class MyApp(Frame):
         if os.path.isfile(self.file_fullpath):
             self.set_lastdir(os.path.dirname(self.file_fullpath))
             self.file_name.set(os.path.basename(self.file_fullpath))
+            self.test_connection()
             
     def get_pesel_file(self):
 
