@@ -2,22 +2,13 @@
 from Tkinter import *
 import tkMessageBox
 from tkFileDialog import askopenfilename
+import threading
+import time
+ 
 
-#from gistools import GisTools
 import os
 
 
-#from sqlalchemy.dialects.firebird.base import dialect
-#from sqlalchemy import create_engine
-#from sqlalchemy.orm import sessionmaker
-#from sqlalchemy.ext.declarative import declarative_base
-#from sqlalchemy import Column, Integer, String, BLOB, MetaData, ForeignKey, update
-#import codecs, os, re
-#from sqlalchemy import func
-#from sqlalchemy.dialects import firebird
-#import glob
-
-#from db_utils import dbutils
 from db_utils.dbtools import DbTools
 from db_utils.dbutils import UpdatePesel
 
@@ -37,6 +28,7 @@ class MyApp(Frame):
         self.pad_x = 10
         self.pad_y = 5
         self.buttonWidth = 12
+        self.newthread = None
         self.file_name = StringVar()
         self.runApp_text = StringVar()
         self.runApp_text.set('?')
@@ -124,12 +116,11 @@ class MyApp(Frame):
 
     def runApp(self):
         
+        if not self.newthread or not self.newthread.is_alive():
+            self.runApp_text.set('running')
+            self.newthread = UpdetePeselThread(self.runApp_text, self.peselfile_fullpath, self.file_fullpath)
+            self.newthread.start()
 
-        self.runApp_text.set('...')
-        x = UpdatePesel(pesel_file=self.peselfile_fullpath, db_file_path=self.file_fullpath)
-        x.updaet_db()
-        #file2qgis = GisTools()
-        #file2qgis.export2qgis(self.file_fullpath)
     def test_connection(self):
         try:
             DbTools(self.file_fullpath)
@@ -140,7 +131,23 @@ class MyApp(Frame):
             tkMessageBox.showerror("Error", msgText)
         
         
-            
+class UpdetePeselThread(threading.Thread):
+ 
+    def __init__(self, runApp_text, peselfile_fullpath, db_file_path ):
+        threading.Thread.__init__(self)
+        self.peselfile_fullpath = peselfile_fullpath
+        self.file_fullpath = db_file_path
+        self.daemon = True        
+        self.textvariable = runApp_text
+        self.koniec = False
+ 
+    def run(self):
+        
+        x = UpdatePesel(pesel_file=self.peselfile_fullpath, db_file_path=self.file_fullpath)
+        x.updaet_db()              
+        self.textvariable.set('OK')
+ 
+         
 
 app_window = Tk()
 app = MyApp(parent=app_window)
