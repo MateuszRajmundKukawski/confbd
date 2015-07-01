@@ -3,7 +3,7 @@ from Tkinter import *
 import tkMessageBox
 from tkFileDialog import askopenfilename
 import threading
-
+import ctypes
  
 
 import os
@@ -33,7 +33,7 @@ class MyApp(Frame):
         self.runApp_text = StringVar()
         self.runApp_text.set('?')
         self.workdir_fullpath = None
-        self.path_file = 'app.data'
+        self.path_file = 'db_utils/app.data'
 
         self.file_fullpath = None
         self.peselfile_fullpath = None
@@ -134,6 +134,7 @@ class MyApp(Frame):
             msgText = 'Error'
             tkMessageBox.showerror("Error", msgText)
             
+            
 
     def test_connection(self):
         try:
@@ -170,6 +171,7 @@ class UpdetePeselThread(threading.Thread, Tk):
              
         else:
             self.textvariable.set('Braki.txt')
+            ctypes.windll.user32.MessageBoxA(None, "SA BRAKI", "INFO", 0)
              
       
           
