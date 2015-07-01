@@ -35,6 +35,9 @@ class MyApp(Frame):
         self.workdir_fullpath = None
         self.path_file = 'app.data'
 
+        self.file_fullpath = None
+        self.peselfile_fullpath = None
+
         self.initMenu()
         ########################
         
@@ -115,15 +118,22 @@ class MyApp(Frame):
 
     def app_info(self):
 
-        msgText = 'Aplikacja zasila baze danych\nnumerami pesel'
+        msgText = 'Aplikacja zasila baze danych\nnumerami PESEL'
         tkMessageBox.showinfo("Info", msgText)
 
     def runApp(self):
-        
-        if not self.newthread or not self.newthread.is_alive():
-            self.runApp_text.set('running')
-            self.newthread = UpdetePeselThread(self.runApp_text, self.peselfile_fullpath, self.file_fullpath)
-            self.newthread.start()
+        if self.file_fullpath  and self.peselfile_fullpath:
+        #print self.peselfile_fullpath
+            print self.file_fullpath
+            if not self.newthread or not self.newthread.is_alive():
+                x = tkMessageBox
+                self.runApp_text.set('running')
+                self.newthread = UpdetePeselThread(self.runApp_text, self.peselfile_fullpath, self.file_fullpath, x)
+                self.newthread.start()
+        else:
+            msgText = 'Error'
+            tkMessageBox.showerror("Error", msgText)
+            
 
     def test_connection(self):
         try:
@@ -135,23 +145,34 @@ class MyApp(Frame):
             tkMessageBox.showerror("Error", msgText)
         
         
-class UpdetePeselThread(threading.Thread):
+class UpdetePeselThread(threading.Thread, Tk):
  
-    def __init__(self, runApp_text, peselfile_fullpath, db_file_path ):
+    def __init__(self, runApp_text, peselfile_fullpath, db_file_path, mb ):
         threading.Thread.__init__(self)
         self.peselfile_fullpath = peselfile_fullpath
         self.file_fullpath = db_file_path
         self.daemon = True        
         self.textvariable = runApp_text
         self.koniec = False
+        self.mb = mb
  
     def run(self):
         
         x = UpdatePesel(pesel_file=self.peselfile_fullpath, db_file_path=self.file_fullpath)
-        x.updaet_db()              
-        self.textvariable.set('OK')
- 
-         
+        tmp = x.updaet_db()
+        #print 'rtn =', tmp
+        #self.mb.showinfo('tt', 'tt')
+        #self.textvariable.set('po')
+        
+                 
+        if tmp is False:              
+            self.textvariable.set('OK')
+             
+        else:
+            self.textvariable.set('Braki.txt')
+             
+      
+          
 
 app_window = Tk()
 app = MyApp(parent=app_window)

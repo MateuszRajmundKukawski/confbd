@@ -108,6 +108,15 @@ class UpdatePesel(object):
                 if len(sampleRow[22]) >= 11 and re.search(self.paternName, sampleRow[0]):                    
                     if self.updateRow(sampleRow) <> 1:                        
                         f.write('\t'.join(newRow).strip('\r')+'\t'+str(self.updateRow(sampleRow))+'\n')
+        statinfo = os.stat(newFile)
+        if statinfo.st_size == 0:
+            
+            os.remove(newFile)
+            print 'True'
+        else:
+            print "False"
+        return True
+         
         
 
 Base = declarative_base()
