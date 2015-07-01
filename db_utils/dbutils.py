@@ -109,13 +109,11 @@ class UpdatePesel(object):
                     if self.updateRow(sampleRow) <> 1:                        
                         f.write('\t'.join(newRow).strip('\r')+'\t'+str(self.updateRow(sampleRow))+'\n')
         statinfo = os.stat(newFile)
-        if statinfo.st_size == 0:
-            
+        if statinfo.st_size == 0:            
             os.remove(newFile)
-            print 'True'
-        else:
-            print "False"
-        return True
+            return False            
+        else:                       
+            return True
          
         
 
