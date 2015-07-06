@@ -2,22 +2,13 @@
 from Tkinter import *
 import tkMessageBox
 from tkFileDialog import askopenfilename
+import threading
+import ctypes
+ 
 
-#from gistools import GisTools
 import os
 
 
-#from sqlalchemy.dialects.firebird.base import dialect
-#from sqlalchemy import create_engine
-#from sqlalchemy.orm import sessionmaker
-#from sqlalchemy.ext.declarative import declarative_base
-#from sqlalchemy import Column, Integer, String, BLOB, MetaData, ForeignKey, update
-#import codecs, os, re
-#from sqlalchemy import func
-#from sqlalchemy.dialects import firebird
-#import glob
-
-#from db_utils import dbutils
 from db_utils.dbtools import DbTools
 from db_utils.dbutils import UpdatePesel
 
@@ -37,35 +28,42 @@ class MyApp(Frame):
         self.pad_x = 10
         self.pad_y = 5
         self.buttonWidth = 12
+        self.newthread = None
         self.file_name = StringVar()
         self.runApp_text = StringVar()
         self.runApp_text.set('?')
         self.workdir_fullpath = None
-        self.path_file = 'app.data'
+        self.path_file = 'db_utils/app.data'
+
+        self.file_fullpath = None
+        self.peselfile_fullpath = None
 
         self.initMenu()
         ########################
-        self.file_name = StringVar()
-        self.file_name.set('?')
+        
         self.get_file_Button = Button(self, text="Select base", command=self.get_file, width=self.buttonWidth)
         self.get_file_Button.grid(row=0, column=0, sticky=W, padx=self.pad_x,pady = self.pad_y)
 
+        self.file_name = StringVar()
+        self.file_name.set('?')
         self.file_name_Label = Label(self, textvariable=self.file_name)
         self.file_name_Label.grid(row=0, column=1)
         ########################
-        self.pesel_name = StringVar()
-        self.pesel_name.set('?')
+        
         self.pesel_name_Button = Button(self, text="PeselFile", command=self.get_pesel_file, width=self.buttonWidth)
         self.pesel_name_Button.grid(row=1, column=0, sticky=W, padx=self.pad_x,pady = self.pad_y)
         
+        self.pesel_name = StringVar()
+        self.pesel_name.set('?')
         self.pesel_name_Label = Label(self, textvariable=self.pesel_name)
         self.pesel_name_Label.grid(row=1, column=1)
         ########################
         self.runApp_Button = Button(self, text="runAPP", command=self.runApp, width=self.buttonWidth)
         self.runApp_Button.grid(row=2, column=0, sticky=W, padx=self.pad_x,pady = self.pad_y)
-        #########################
+        
         self.runApp_Label = Label(self, textvariable=self.runApp_text)
         self.runApp_Label.grid(row=2, column=1, sticky=W, padx=self.pad_x,pady = self.pad_y)
+        #########################
 
 
     def initMenu(self):
@@ -90,6 +88,7 @@ class MyApp(Frame):
         if os.path.isfile(self.file_fullpath):
             self.set_lastdir(os.path.dirname(self.file_fullpath))
             self.file_name.set(os.path.basename(self.file_fullpath))
+            self.test_connection()
             
     def get_pesel_file(self):
 
@@ -119,17 +118,24 @@ class MyApp(Frame):
 
     def app_info(self):
 
-        msgText = 'Aplikacja zasila baze danych\nnumerami pesel'
+        msgText = 'Aplikacja zasila baze danych\nnumerami PESEL'
         tkMessageBox.showinfo("Info", msgText)
 
     def runApp(self):
-        
+        if self.file_fullpath  and self.peselfile_fullpath:
+        #print self.peselfile_fullpath
+            print self.file_fullpath
+            if not self.newthread or not self.newthread.is_alive():
+                
+                self.runApp_text.set('running')
+                self.newthread = UpdetePeselThread(self.runApp_text, self.peselfile_fullpath, self.file_fullpath, self.show_message_after)
+                self.newthread.start()
+        else:
+            msgText = 'Error'
+            tkMessageBox.showerror("Error", msgText)
+            
+            
 
-        self.runApp_text.set('...')
-        x = UpdatePesel(pesel_file=self.peselfile_fullpath, db_file_path=self.file_fullpath)
-        x.updaet_db()
-        #file2qgis = GisTools()
-        #file2qgis.export2qgis(self.file_fullpath)
     def test_connection(self):
         try:
             DbTools(self.file_fullpath)
@@ -138,9 +144,46 @@ class MyApp(Frame):
         except:
             msgText = 'Connection error'
             tkMessageBox.showerror("Error", msgText)
-        
-        
             
+    def show_message(self, text):
+        # wywołanie bezpośrednie blokuje działanie wątku
+        tkMessageBox.showinfo('Info', text) 
+    def show_message_after(self, text):
+        # wywołanie przez after aby nie blokowało działania wątku
+        self.after(100, self.show_message, text)
+        
+class UpdetePeselThread(threading.Thread):
+ 
+    def __init__(self, runApp_text, peselfile_fullpath, db_file_path, show_message_after ):
+        threading.Thread.__init__(self)
+        self.peselfile_fullpath = peselfile_fullpath
+        self.file_fullpath = db_file_path
+        self.daemon = True        
+        self.textvariable = runApp_text
+        self.koniec = False
+        self.show_message_info = show_message_after
+ 
+    def run(self):
+        #tkMessageBox.showinfo('Info', "Startuje watek")
+        self.show_message_info('Start')
+        x = UpdatePesel(pesel_file=self.peselfile_fullpath, db_file_path=self.file_fullpath)
+        tmp = x.updaet_db()
+        #print 'rtn =', tmp
+        #self.mb.showinfo('tt', 'tt')
+        #self.textvariable.set('po')
+        
+                 
+        if tmp is False:              
+            self.textvariable.set('OK')
+            self.show_message_info('Ok')
+             
+        else:
+            self.textvariable.set('Braki.txt')
+            #ctypes.windll.user32.MessageBoxA(None, "SA BRAKI", "INFO", 0)
+            self.show_message_info('Error')
+             
+      
+          
 
 app_window = Tk()
 app = MyApp(parent=app_window)

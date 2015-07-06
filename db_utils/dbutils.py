@@ -8,11 +8,9 @@ from sqlalchemy.orm import sessionmaker
 
 class UpdatePesel(object):
     def __init__(self, pesel_file, db_file_path, password='masterkey', usr='SYSDBA',  ):
+        
         self.connection_string = ('firebird+fdb://{user}:{admin_pass}@localhost/{file_path}').format(user=usr,admin_pass=password,file_path=db_file_path)
-        
-        
         self.bd_connect()
-        
         self.fname = pesel_file
         Base = declarative_base()
         Base.metadata.create_all(self.engine)         
@@ -30,13 +28,12 @@ class UpdatePesel(object):
     def set_pesel_file(self):
 
         with codecs.open(self.fname, 'r', 'utf-8') as f:
-##with codecs.open(fname, 'r', 'windows-1250') as f:
             self.plik_lista = [ line.rstrip( "\n" ).split('\t') for line in f]
         
         
          
-    def makeMagick(self, sampleRow):
-        #print 'magia'
+    def updateRow(self, sampleRow):
+        
     
         for i in range(len(sampleRow)):
             #sampleRow[i]=sampleRow[i].lower()
@@ -47,7 +44,7 @@ class UpdatePesel(object):
             pslval=str(sampleRow[22]).strip('\r')
         except:
             pslval = sampleRow[22]
-        #pslval='6'*11
+        
         pimval=sampleRow[7].encode('windows-1250')
         dimval= sampleRow[8]
         nzwval=sampleRow[5].encode('windows-1250')
@@ -63,7 +60,7 @@ class UpdatePesel(object):
             kodval = sampleRow[12].replace(' ', '')
         except:
             kodval=sampleRow[12]
-        #radrval = sampleRow[15]
+       
         if sampleRow[13] <> None:
             nazval = sampleRow[13].upper().encode('windows-1250')
             nazval = '%'+nazval+'%'
@@ -103,17 +100,25 @@ class UpdatePesel(object):
         
     def updaet_db(self):
         self.set_pesel_file()
-        #self.paternName = '1815012'
+        
         newFile=('/'.join((self.workdir_path, self.paternName+'_BRAKI.txt')))
         with codecs.open(newFile, 'w', 'windows-1250') as f:
             for sampleRow in self.plik_lista:                
                 newRow = sampleRow[:]                
                 if len(sampleRow[22]) >= 11 and re.search(self.paternName, sampleRow[0]):                    
-                    if self.makeMagick(sampleRow) <> 1:                        
-                        f.write('\t'.join(newRow).strip('\r')+'\t'+str(self.makeMagick(sampleRow))+'\n')
+                    if self.updateRow(sampleRow) <> 1:                        
+                        f.write('\t'.join(newRow).strip('\r')+'\t'+str(self.updateRow(sampleRow))+'\n')
+        statinfo = os.stat(newFile)
+        if statinfo.st_size == 0:            
+            os.remove(newFile)
+            return False            
+        else:                       
+            return True
+         
         
 
 Base = declarative_base()
+
 class Osoby(Base):
     __tablename__ = 'osoby'
     uid = Column(Integer, primary_key=True)

@@ -1,13 +1,4 @@
-#from sqlalchemy.dialects.firebird.base import dialect
 from sqlalchemy import create_engine
-# from sqlalchemy.orm import sessionmaker
-# from sqlalchemy.ext.declarative import declarative_base
-# from sqlalchemy import Column, Integer, String, BLOB, MetaData, ForeignKey, update
-# import codecs, os, re
-# from sqlalchemy import func
-# from sqlalchemy.dialects import firebird
-# import tbclass
-
 
 
 class DbTools(object):
