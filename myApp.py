@@ -126,9 +126,9 @@ class MyApp(Frame):
         #print self.peselfile_fullpath
             print self.file_fullpath
             if not self.newthread or not self.newthread.is_alive():
-                x = tkMessageBox
+                
                 self.runApp_text.set('running')
-                self.newthread = UpdetePeselThread(self.runApp_text, self.peselfile_fullpath, self.file_fullpath, x)
+                self.newthread = UpdetePeselThread(self.runApp_text, self.peselfile_fullpath, self.file_fullpath, self.show_message_after)
                 self.newthread.start()
         else:
             msgText = 'Error'
@@ -144,21 +144,28 @@ class MyApp(Frame):
         except:
             msgText = 'Connection error'
             tkMessageBox.showerror("Error", msgText)
+            
+    def show_message(self, text):
+        # wywołanie bezpośrednie blokuje działanie wątku
+        tkMessageBox.showinfo('Info', text) 
+    def show_message_after(self, text):
+        # wywołanie przez after aby nie blokowało działania wątku
+        self.after(100, self.show_message, text)
         
-        
-class UpdetePeselThread(threading.Thread, Tk):
+class UpdetePeselThread(threading.Thread):
  
-    def __init__(self, runApp_text, peselfile_fullpath, db_file_path, mb ):
+    def __init__(self, runApp_text, peselfile_fullpath, db_file_path, show_message_after ):
         threading.Thread.__init__(self)
         self.peselfile_fullpath = peselfile_fullpath
         self.file_fullpath = db_file_path
         self.daemon = True        
         self.textvariable = runApp_text
         self.koniec = False
-        self.mb = mb
+        self.show_message_info = show_message_after
  
     def run(self):
-        
+        #tkMessageBox.showinfo('Info', "Startuje watek")
+        self.show_message_info('Start')
         x = UpdatePesel(pesel_file=self.peselfile_fullpath, db_file_path=self.file_fullpath)
         tmp = x.updaet_db()
         #print 'rtn =', tmp
@@ -168,10 +175,12 @@ class UpdetePeselThread(threading.Thread, Tk):
                  
         if tmp is False:              
             self.textvariable.set('OK')
+            self.show_message_info('Ok')
              
         else:
             self.textvariable.set('Braki.txt')
-            ctypes.windll.user32.MessageBoxA(None, "SA BRAKI", "INFO", 0)
+            #ctypes.windll.user32.MessageBoxA(None, "SA BRAKI", "INFO", 0)
+            self.show_message_info('Error')
              
       
           
