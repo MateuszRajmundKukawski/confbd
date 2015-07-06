@@ -21,7 +21,7 @@ class MyApp(Frame):
         self.pack()
 
     def initUI(self):
-        self.parent.geometry("200x100")
+        self.parent.geometry("230x100")
         self.parent.title("Update PESEL")
 
     def userUI(self):
@@ -123,7 +123,7 @@ class MyApp(Frame):
 
     def runApp(self):
         if self.file_fullpath  and self.peselfile_fullpath:
-        #print self.peselfile_fullpath
+        
             print self.file_fullpath
             if not self.newthread or not self.newthread.is_alive():
                 
@@ -146,10 +146,10 @@ class MyApp(Frame):
             tkMessageBox.showerror("Error", msgText)
             
     def show_message(self, text):
-        # wywołanie bezpośrednie blokuje działanie wątku
+                
         tkMessageBox.showinfo('Info', text) 
     def show_message_after(self, text):
-        # wywołanie przez after aby nie blokowało działania wątku
+                
         self.after(100, self.show_message, text)
         
 class UpdetePeselThread(threading.Thread):
@@ -162,15 +162,12 @@ class UpdetePeselThread(threading.Thread):
         self.textvariable = runApp_text
         self.koniec = False
         self.show_message_info = show_message_after
- 
+        self.bdname = os.path.basename(self.file_fullpath)[:-4]
     def run(self):
-        #tkMessageBox.showinfo('Info', "Startuje watek")
+        
         self.show_message_info('Start')
         x = UpdatePesel(pesel_file=self.peselfile_fullpath, db_file_path=self.file_fullpath)
         tmp = x.updaet_db()
-        #print 'rtn =', tmp
-        #self.mb.showinfo('tt', 'tt')
-        #self.textvariable.set('po')
         
                  
         if tmp is False:              
@@ -178,8 +175,8 @@ class UpdetePeselThread(threading.Thread):
             self.show_message_info('Ok')
              
         else:
-            self.textvariable.set('Braki.txt')
-            #ctypes.windll.user32.MessageBoxA(None, "SA BRAKI", "INFO", 0)
+            
+            self.textvariable.set(self.bdname+'_braki.txt')            
             self.show_message_info('Error')
              
       
